@@ -9,7 +9,7 @@
 /*
  * return the number of port on success, or -1 on error.
  */
-int config_get_port(config_t *conf)
+static int config_get_port(config_t *conf)
 {
 	int port;
 	char *ep;
@@ -58,7 +58,7 @@ static int config_read(config_t *conf)
 	return 0;
 }
 
-void config_del(config_t *conf)
+static void config_delete(config_t *conf)
 {
 	struct conflink *next, *t;
 
@@ -88,7 +88,7 @@ config_t *config_new(const char *path)
 		memset(conf, 0, sizeof(*conf));
 		/* config's APIs initial... */
 		conf->get_port = config_get_port;
-		conf->del = config_del;
+		conf->delete = config_delete;
 
 		conf->fp = fopen(path, OPEN_FLAGS);
 		if (NULL != conf->fp) {

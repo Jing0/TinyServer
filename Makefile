@@ -1,12 +1,14 @@
-all: TinyServer
+PROGS	= TinyServer
+OBJS	= config.o
+FLAGS	= -Wall
+CC	= gcc
 
-TinyServer: TinyServer.o config.o
-	gcc -g -o TinyServer TinyServer.o config.o
+ALL: $(OBJS) $(PROGS)
 
-TinyServer.o: TinyServer.c
-	gcc -c -g TinyServer.c
+%.o: %.c %.h
+	$(CC) -c $^ $(FLAGS)
+TinyServer: TinyServer.o $(OBJS)
+	$(CC) -o $@ $^ $(FLAGS)
 
-config.o: config.c config.h
-	gcc -c -g config.c
 clean:
-	-rm *.o TinyServer
+	$(RM) $(OBJS) $(PROGS) $(wildcard *.h.gch) $(wildcard *.o)

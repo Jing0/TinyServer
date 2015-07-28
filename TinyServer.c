@@ -53,11 +53,11 @@ int initialize(int *port) {
     config_t *config = config_new("./config.ini");
     if (config == NULL) {
         fprintf(stderr, "%s\n", "Failed to read initialization file");
-        config_del(config);
+        config->delete(config);
         return -1;
     }
-    *port = config_get_port(config);
-    config_del(config);
+    *port = config->get_port(config);
+    config->delete(config);
     return 0;
 }
 
