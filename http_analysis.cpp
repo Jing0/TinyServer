@@ -8,13 +8,12 @@
 
 using namespace std;
 
-map<string, string> http_analysis(int fd, size_t length)
+void http_analysis(map<string, string> &mp, int fd, size_t length)
 {
     size_t i = 0, j = 0, skip_n;
     char *str = (char *) malloc(length + 1);
     char *buf = (char *) malloc(length + 1);
     recv(fd, buf, length, 0);
-    map<string, string> mp;
     string key;
     static const char *request_line[] = {
         "Method",
@@ -68,5 +67,5 @@ map<string, string> http_analysis(int fd, size_t length)
     free(str);
     free(buf);
 
-    return mp;
+    return;
 }
