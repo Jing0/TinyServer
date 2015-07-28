@@ -1,0 +1,58 @@
+#include <cstdio>
+#include <cstdlib>
+#include <map>
+#include <cstring>
+#include <string>
+#include <cstddef>
+#include <sys/socket.h>
+
+using namespace std;
+
+map<string, string> http_analysis(int fd, size_t length)
+{
+    size_t i = 0, j = 0, skip_n;
+    char *str = (char *) malloc(length + 1);
+    char *buf = (char *) malloc(length + 1);
+    recv(fd, buf, length, 0);
+    map<string, string> mp;
+    string key;
+    static const char *request_line[] = {
+        "Method",
+        "URL",
+        "Version"
+    };
+
+    /*
+     * Extract the request line
+     * */
+    for (int cnt = 0; cnt < 3; ++cnt) {
+        sscanf(buf + i, "%s%n", str, &skip_n);
+        i += skip_n;
+        mp[request_line[cnt]] = str;
+    }
+    i += 2; // Skip "\r\n"
+
+    /*
+     * Handle header lines
+     * */
+    while (buf[i] != '\r') {
+        j = 0;
+        while (buf[i] != '\r') {
+            if (buf[i] == ':') {
+                str[j] = '\0';
+                key = string(str);
+                j = 0;
+                i += 2; // Skip ": "
+            } else {
+                str[j++] = buf[i++];
+            }
+        }
+        str[j] = '\0';
+        i += 2;     // Skip "\r\n"
+        mp[key] = str;
+    }
+
+    free(str);
+
+    return mp;
+}
