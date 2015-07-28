@@ -26,7 +26,7 @@ const char response[] = "HTTP/1.1 200 OK\r\n"
     "<head><meta content=\"text/html; charset=utf-8\"><title>Hello</title></head>"
     "<body><h2>Hello, world!</h2></body></html>\r\n";
 
-int processSocket(int create_socket, struct sockaddr *address, socklen_t *address_len, char **request_buffer) {
+int processSocket(int create_socket, struct sockaddr *address, socklen_t *address_len, char *request_buffer) {
     int new_socket = accept(create_socket, address, address_len);
     if (new_socket < 0) {
         perror("server: accept");
@@ -35,14 +35,12 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
         printf("The Client is connected...\n");
     }
 
-    char *buff = calloc(BUFSIZE, sizeof(char));
+    memset(request_buffer, 0, BUFSIZE*sizeof(char));
     /* recv() is identical to recvfrom() with a null pointer passed as its address argument.
     As it is redundant, it may not be sup-ported supported in future releases. */
-    if (recvfrom(new_socket, buff, BUFSIZE, 0, NULL, NULL) < 0) {
+    if (recvfrom(new_socket, request_buffer, BUFSIZE, 0, NULL, NULL) < 0) {
         perror("server: receive");
     }
-    *request_buffer = buff;
-    saferfree((void **) &buff);
 
     write(new_socket, response, sizeof(response) - 1);
     close(new_socket);
@@ -65,7 +63,7 @@ int main() {
     int reuse = 0;    
     socklen_t address_len;
     struct sockaddr_in address;
-    char *request_buffer;
+    char *request_buffer = malloc(BUFSIZE);
     int port = DEFAULT_PORT;
     
     initialize(&port);
@@ -91,7 +89,7 @@ int main() {
     }
 
     while (1) {
-        processSocket(create_socket, (struct sockaddr *)&address, &address_len, &request_buffer);
+        processSocket(create_socket, (struct sockaddr *)&address, &address_len, request_buffer);
         printf("%s\n", request_buffer);
         int len = strlen(request_buffer);
         printf("%d\n", len); 
