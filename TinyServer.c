@@ -6,10 +6,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
+#include "config.c"
 
 #define BUFSIZE 1024
 /* BACKLOG defines the maximum length for the queue of pending connections */
 #define BACKLOG 10
+#define DEFAULT_PORT 8080
 
 void saferfree(void **pp) {
     if (pp != NULL && *pp != NULL) {
@@ -29,7 +31,7 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
     if (new_socket < 0) {
         perror("server: accept");
         return 1;
-    } else if (new_socket > 0){
+    } else if (new_socket > 0) {
         printf("The Client is connected...\n");
     }
 
@@ -40,26 +42,45 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
         perror("server: receive");
     }
     *request_buffer = buff;
-    saferfree((void **)&buff);
-    
+    saferfree((void **) &buff);
+
     write(new_socket, response, sizeof(response) - 1);
     close(new_socket);
     return 0;
 }
 
+int initialize(int *port) {
+    config_t *config = config_new("./config.ini");
+    if (config == NULL) {
+        fprintf(stderr, "%s\n", "Failed to read initialization file");
+        config_delete(config);
+        return -1;
+    }
+    *port = config_get_port(config);
+    config_delete(config);
+    return 0;
+}
+
 int main() {
     int create_socket;
-    int default_port = 8080;
+    int reuse = 0;    
     socklen_t address_len;
     struct sockaddr_in address;
     char *request_buffer;
+    int port = DEFAULT_PORT;
+    
+    initialize(&port);
+    printf("port: %d\n", port);
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(default_port);
+    address.sin_port = htons(port);
 
     if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) > 0) {
         printf("The socket was created : %d\n", create_socket);
+    }
+    if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+        perror("Setsockopt error\n");
     }
     if (bind(create_socket, (struct sockaddr *) &address, sizeof(address)) == 0) {
         printf("Binding Socket\n");
