@@ -1,7 +1,7 @@
 all: TinyServer
 
 TinyServer: TinyServer.o config.o
-	gcc -g -o $@ $^
+	gcc -g -o TinyServer TinyServer.o config.o
 
 TinyServer.o: TinyServer.c
 	gcc -c -g TinyServer.c

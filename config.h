@@ -17,8 +17,9 @@ struct config {
 	struct conflink *list;
 
 	int (*get_port)(config_t *);
-	void (*delete)(config_t *);
+	void (*del)(config_t *);
 };
 
 config_t *config_new(const char *path);
+
 #endif

@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
-#include "config.c"
+#include "config.h"
 
 #define BUFSIZE 1024
 /* BACKLOG defines the maximum length for the queue of pending connections */
@@ -53,11 +53,11 @@ int initialize(int *port) {
     config_t *config = config_new("./config.ini");
     if (config == NULL) {
         fprintf(stderr, "%s\n", "Failed to read initialization file");
-        config_delete(config);
+        config_del(config);
         return -1;
     }
     *port = config_get_port(config);
-    config_delete(config);
+    config_del(config);
     return 0;
 }
 
