@@ -1,6 +1,6 @@
 PROGS	= TinyServer
 OBJS	= config.o
-FLAGS	= -Wall
+FLAGS	= -Wall -std=c99
 CC	= gcc
 
 ALL: $(OBJS) $(PROGS)

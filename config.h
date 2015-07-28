@@ -1,6 +1,7 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 #include <stdio.h>
+#include <stdbool.h>
 
 struct conflink {
 #define CONFLINK_KEY_MAX	256
@@ -30,8 +31,8 @@ config_t *config_new(const char *path);
  * @ret 成功返回true, 失败或者section, key不存在返回false
 */
 
-int config_get_int(struct config* c, const char* sec, const char* key, int* result);
-int config_get_string(struct config* c, const char* sec, const char* key, char** result);
+bool config_get_int(struct config* c, const char* sec, const char* key, int* result);
+bool config_get_string(struct config* c, const char* sec, const char* key, char** result);
 
 
 #endif
