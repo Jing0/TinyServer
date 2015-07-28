@@ -10,6 +10,7 @@ using namespace std;
 
 void extra_fields(char *str, map<string, string> &mp)
 {
+    char *p = str;
     char *pch = strtok(p, "&");
     while (pch) {
         p = strchr(pch, '=');
@@ -27,7 +28,8 @@ void extra_fields(char *str, map<string, string> &mp)
 extern "C" void http_analysis(const char *buf, size_t length, const char *query, char *rst);
 void http_analysis(const char *buf, size_t length, const char *query, char *rst)
 {
-    size_t i = 0, j = 0, skip_n;
+    size_t i = 0, j = 0;
+    int skip_n;
     char *str = (char *) malloc(length + 1);
     static map<string, string> mp; 
     string key;
