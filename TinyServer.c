@@ -8,7 +8,7 @@
 #include <string.h>
 #include "config.h"
 
-#define BUFSIZE 1024
+#define BUFSIZE 8192
 /* BACKLOG defines the maximum length for the queue of pending connections */
 #define BACKLOG 10
 #define DEFAULT_PORT 8080
@@ -35,7 +35,7 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
         printf("The Client is connected...\n");
     }
 
-    char *buff = malloc(BUFSIZE);
+    char *buff = calloc(BUFSIZE, sizeof(char));
     /* recv() is identical to recvfrom() with a null pointer passed as its address argument.
     As it is redundant, it may not be sup-ported supported in future releases. */
     if (recvfrom(new_socket, buff, BUFSIZE, 0, NULL, NULL) < 0) {
@@ -53,7 +53,6 @@ int initialize(int *port) {
     config_t *config = config_new("./config.ini");
     if (config == NULL) {
         fprintf(stderr, "%s\n", "Failed to read initialization file");
-        config->delete(config);
         return -1;
     }
     *port = config->get_port(config);
@@ -95,7 +94,7 @@ int main() {
         processSocket(create_socket, (struct sockaddr *)&address, &address_len, &request_buffer);
         printf("%s\n", request_buffer);
         int len = strlen(request_buffer);
-        printf("%d\n", len);
+        printf("%d\n", len); 
     }
     saferfree((void **) &request_buffer);
     close(create_socket);
