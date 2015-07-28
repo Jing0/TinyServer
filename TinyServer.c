@@ -25,11 +25,6 @@ const char response[] = "HTTP/1.1 200 OK\r\n"
     "<body><h2>Hello, world!</h2></body></html>\r\n";
 
 int processSocket(int create_socket, struct sockaddr *address, socklen_t *address_len, char **request_buffer) {
-    if (listen(create_socket, BACKLOG) < 0) {
-        perror("server: listen");
-        return 1;
-    }
-
     int new_socket = accept(create_socket, address, address_len);
     if (new_socket < 0) {
         perror("server: accept");
@@ -41,11 +36,14 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
     char *buff = malloc(BUFSIZE);
     /* recv() is identical to recvfrom() with a null pointer passed as its address argument.
     As it is redundant, it may not be sup-ported supported in future releases. */
-    recvfrom(new_socket, buff, BUFSIZE, 0, NULL, NULL);
+    if (recvfrom(new_socket, buff, BUFSIZE, 0, NULL, NULL) < 0) {
+        perror("server: receive");
+    }
     *request_buffer = buff;
+    saferfree((void **)&buff);
+    
     write(new_socket, response, sizeof(response) - 1);
     close(new_socket);
-    saferfree((void **)&buff);
     return 0;
 }
 
@@ -63,11 +61,13 @@ int main() {
     if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) > 0) {
         printf("The socket was created : %d\n", create_socket);
     }
-
     if (bind(create_socket, (struct sockaddr *) &address, sizeof(address)) == 0) {
         printf("Binding Socket\n");
     } else {
         perror("Failed to bind\n");
+    }
+    if (listen(create_socket, BACKLOG) < 0) {
+        perror("server: listen");
     }
 
     while (1) {
