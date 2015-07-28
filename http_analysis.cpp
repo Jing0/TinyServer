@@ -66,6 +66,7 @@ map<string, string> http_analysis(int fd, size_t length)
     }
 
     free(str);
+    free(buf);
 
     return mp;
 }
