@@ -29,8 +29,9 @@ config_t *config_new(const char *path);
 /*
  * @ret 成功返回true, 失败或者section, key不存在返回false
 */
-bool	config_get_int(config* c, const char* sec, const char* key, int* result);
-bool	config_get_string(config* c, const char* sec, const char* key, char** result);
+
+int config_get_int(struct config* c, const char* sec, const char* key, int* result);
+int config_get_string(struct config* c, const char* sec, const char* key, char** result);
 
 
 #endif
