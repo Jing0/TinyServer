@@ -26,19 +26,19 @@ const char response[] = "HTTP/1.1 200 OK\r\n"
     "<head><meta content=\"text/html; charset=utf-8\"><title>Hello</title></head>"
     "<body><h2>Hello, world!</h2></body></html>\r\n";
 
-int processSocket(int create_socket, struct sockaddr *address, socklen_t *address_len, char *request_buffer) {
-    int new_socket = accept(create_socket, address, address_len);
+int processSocket(int create_socket, struct sockaddr *addr, socklen_t *addr_len, char *request_buf) {
+    int new_socket = accept(create_socket, addr, addr_len);
     if (new_socket < 0) {
         perror("server: accept");
         return 1;
-    } else if (new_socket > 0) {
+    } else {
         printf("The Client is connected...\n");
     }
 
-    memset(request_buffer, 0, BUFSIZE*sizeof(char));
+    memset(request_buf, 0, BUFSIZE * sizeof(char));
     /* recv() is identical to recvfrom() with a null pointer passed as its address argument.
     As it is redundant, it may not be sup-ported supported in future releases. */
-    if (recvfrom(new_socket, request_buffer, BUFSIZE, 0, NULL, NULL) < 0) {
+    if (recvfrom(new_socket, request_buf, BUFSIZE, 0, NULL, NULL) < 0) {
         perror("server: receive");
     }
 
@@ -61,17 +61,17 @@ int initialize(int *port) {
 int main() {
     int create_socket;
     int reuse = 0;    
-    socklen_t address_len;
-    struct sockaddr_in address;
-    char *request_buffer = malloc(BUFSIZE);
+    socklen_t addr_len;
+    struct sockaddr_in addr;
+    char *request_buf = malloc(BUFSIZE);
     int port = DEFAULT_PORT;
     
     initialize(&port);
     printf("port: %d\n", port);
 
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(port);
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(port);
 
     if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) > 0) {
         printf("The socket was created : %d\n", create_socket);
@@ -79,7 +79,7 @@ int main() {
     if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
         perror("Setsockopt error\n");
     }
-    if (bind(create_socket, (struct sockaddr *) &address, sizeof(address)) == 0) {
+    if (bind(create_socket, (struct sockaddr *) &addr, sizeof(addr)) == 0) {
         printf("Binding Socket\n");
     } else {
         perror("Failed to bind\n");
@@ -89,12 +89,12 @@ int main() {
     }
 
     while (1) {
-        processSocket(create_socket, (struct sockaddr *)&address, &address_len, request_buffer);
-        printf("%s\n", request_buffer);
-        int len = strlen(request_buffer);
+        processSocket(create_socket, (struct sockaddr *)&addr, &addr_len, request_buf);
+        printf("%s\n", request_buf);
+        int len = strlen(request_buf);
         printf("%d\n", len); 
     }
-    saferfree((void **) &request_buffer);
+    saferfree((void **) &request_buf);
     close(create_socket);
     return 0;
 }
