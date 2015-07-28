@@ -5,10 +5,18 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <string.h>
 
 #define BUFSIZE 1024
 /* BACKLOG defines the maximum length for the queue of pending connections */
 #define BACKLOG 10
+
+void saferfree(void **pp) {
+    if (pp != NULL && *pp != NULL) {
+        free(*pp);
+        *pp = NULL;
+    }
+}
 
 const char response[] = "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n\r\n"
@@ -16,14 +24,13 @@ const char response[] = "HTTP/1.1 200 OK\r\n"
     "<head><meta content=\"text/html; charset=utf-8\"><title>Hello</title></head>"
     "<body><h2>Hello, world!</h2></body></html>\r\n";
 
-int processSocket(int create_socket, struct sockaddr *address, socklen_t *address_len) {
+int processSocket(int create_socket, struct sockaddr *address, socklen_t *address_len, char **request_buffer) {
     if (listen(create_socket, BACKLOG) < 0) {
         perror("server: listen");
         return 1;
     }
-    
-    int new_socket = accept(create_socket, address, address_len);
 
+    int new_socket = accept(create_socket, address, address_len);
     if (new_socket < 0) {
         perror("server: accept");
         return 1;
@@ -31,11 +38,14 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
         printf("The Client is connected...\n");
     }
 
+    char *buff = malloc(BUFSIZE);
     /* recv() is identical to recvfrom() with a null pointer passed as its address argument.
     As it is redundant, it may not be sup-ported supported in future releases. */
-    recvfrom(new_socket, NULL, BUFSIZE, 0, NULL, NULL); 
+    recvfrom(new_socket, buff, BUFSIZE, 0, NULL, NULL);
+    *request_buffer = buff;
     write(new_socket, response, sizeof(response) - 1);
     close(new_socket);
+    saferfree((void **)&buff);
     return 0;
 }
 
@@ -44,6 +54,7 @@ int main() {
     int default_port = 8080;
     socklen_t address_len;
     struct sockaddr_in address;
+    char *request_buffer;
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -60,9 +71,12 @@ int main() {
     }
 
     while (1) {
-        processSocket(create_socket, (struct sockaddr *)&address, &address_len);
+        processSocket(create_socket, (struct sockaddr *)&address, &address_len, &request_buffer);
+        printf("%s\n", request_buffer);
+        int len = strlen(request_buffer);
+        printf("%d\n", len);
     }
-
+    saferfree((void **) &request_buffer);
     close(create_socket);
     return 0;
 }
