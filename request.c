@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
 #include "request.h"
 
 #define NOW_PATH "./HTTPDOC"
@@ -8,6 +10,7 @@ void server_file(int client, char *path);
 void bad_notfound(int client);
 void headers(int client);
 void http_analysis(const char *buf, size_t length, const char *query, char *rst);
+
 
 
 void request(int client, const char *buf)
@@ -22,21 +25,25 @@ void request(int client, const char *buf)
 	memset(query_string, 0, sizeof(query_string));
 	memset(url, 0, sizeof(url));
 
-	//http_analysis(buf, strlen(buf), "Method", method);
-	//http_analysis(buf, strlen(buf), "Url", url);
+	
+	http_analysis(buf, strlen(buf), "Method", method);
+	http_analysis(buf, strlen(buf), "Url", url);
 	//printf("%s\n", buf);
+
+	if(url[strlen(url) - 1] == '/')
+		strcat(url,"index.html");
+	if(url[strlen(url) - 1] == '\0')
+		strcpy(url,"/index.html");
+
+	strcpy(path, NOW_PATH);
+	strcat(path, url);
+	printf("Path: %s\n", path);
+	//printf("Method: %s\n", method);
+	fflush(stdout);
 	
 	if(!strcasecmp(method, "GET"))
 	{
 		//GET
-		if(url[strlen(url) - 1] == '/')
-			strcat(url,"index.html");
-		printf("%s\n", url);
-		
-		strcpy(path, NOW_PATH);
-		strcpy(path, url);
-		printf("Path: %s\n", path);
-		
 		server_file(client, path);
 	}
 	else if(!strcasecmp(method, "POST"))
@@ -56,7 +63,9 @@ void server_file(int client, char *path)
 	FILE *fp = NULL;
 	fp = fopen(path, "r");
 	if(fp == NULL)
+	{
 		bad_notfound(client);
+	}
 	else
 	{
 		headers(client);
@@ -64,11 +73,11 @@ void server_file(int client, char *path)
 		
 		while(!feof(fp))
 		{
+			memset(buf, 0, sizeof(buf));
 			fgets(buf, sizeof(buf), fp);
-			printf("%s", buf);
-			send(client, buf, strlen(buf), 0);
+			send(client, buf, strlen(buf), MSG_NOSIGNAL);
 		}
-		close(fp);
+		fclose(fp);
 	}
 	fp = NULL;
 }
@@ -78,14 +87,14 @@ void bad_notfound(int client)
 	char buf[1024];
 	memset(buf, 0, sizeof(buf));
 
-	strcpy(buf, "HTTP/1.0 404 Not Found\r\n");
-	send(client, buf, strlen(buf), 0);
-	strcpy(buf, "Server: MyServer/0.1.0\r\n");
-	send(client, buf, strlen(buf), 0);
-	sprintf(buf, "Content-Type: text/html\r\n");
-	send(client, buf, strlen(buf), 0);
-	strcpy(buf, "\r\n");
-	send(client, buf, strlen(buf), 0);
+	// strcpy(buf, "HTTP/1.0 404 Not Found\r\n");
+	// send(client, buf, strlen(buf), 0);
+	// strcpy(buf, "Server: MyServer/0.1.0\r\n");
+	// send(client, buf, strlen(buf), 0);
+	// sprintf(buf, "Content-Type: text/html\r\n");
+	// send(client, buf, strlen(buf), 0);
+	// strcpy(buf, "\r\n");
+	//send(client, buf, strlen(buf), 0);
 	server_file(client, "./HTTPDOC/404NotFound.html");
 }
 
@@ -94,12 +103,12 @@ void headers(int client)
 	char buf[1024];
 	memset(buf, 0, sizeof(buf));
 
-	strcpy(buf, "HTTP/1.0 200 OK\r\n");
+	strcpy(buf, "HTTP/1.1 200 OK\r\n");
 	send(client, buf, strlen(buf), 0);
 	strcpy(buf, "Server: MyServer/0.1.0\r\n");
 	send(client, buf, strlen(buf), 0);
-	sprintf(buf, "Content-Type: text/html\r\n");
-	send(client, buf, strlen(buf), 0);
+	//sprintf(buf, "Content-Type: text/html\r\n");
+	//send(client, buf, strlen(buf), 0);
 	strcpy(buf, "\r\n");
 	send(client, buf, strlen(buf), 0);
 }

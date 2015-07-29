@@ -107,8 +107,10 @@ void http_analysis(const char *buf, size_t length, const char *query, char *rst)
         i += skip_n;
         if (1 == cnt) {
             char *p = strchr(str, '?');
-            *p = '\0';
-            node_insert(root, "Query", ++p);
+            if (p) {
+                *p = '\0';
+                node_insert(root, "Query", ++p);
+            }
         }
         node_insert(root, request_line[cnt], str);
 

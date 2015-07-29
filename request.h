@@ -3,5 +3,4 @@
 
 void request(int client, const char * buf);
 
-
 #endif

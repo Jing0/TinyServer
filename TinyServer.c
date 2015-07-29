@@ -34,6 +34,7 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
         return 1;
     } else if (new_socket > 0) {
         printf("The Client is connected...\n");
+        fflush(stdout);
     }
 
     char *buff = malloc(BUFSIZE);
@@ -45,7 +46,8 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
     *request_buffer = buff;
     
     //show message
-    request(new_socket, *request_buffer);
+    if(*request_buffer != NULL)
+        request(new_socket, *request_buffer);
     
     saferfree((void **) &buff);
 
@@ -103,6 +105,7 @@ int main() {
         
         int len = strlen(request_buffer);
         printf("%d\n", len);
+        fflush(stdout);
     }
     saferfree((void **) &request_buffer);
     close(create_socket);
