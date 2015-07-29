@@ -86,8 +86,12 @@ void extra_fields(Link_Node *root, char *str)
  * query is the field wanted to look up
  * rst is a buffer to store the look up result
  * */
-void http_analysis(const char *buf, size_t length, const char *query, char *rst)
+int http_analysis(const char *buf, size_t length, const char *query, char *rst)
 {
+    if (0 == length) return -1;
+    if (strlen(buf) != length) return -1;
+    if (query == NULL || rst == NULL) return -1;
+
     size_t i = 0, j = 0;
     int skip_n;
     char *str = (char *) malloc(length + 1);
@@ -102,9 +106,10 @@ void http_analysis(const char *buf, size_t length, const char *query, char *rst)
      * Extract the request line
      * */
     int cnt;
-    for (cnt = 0; cnt < 3; ++cnt) {
+    for (cnt = 0; i < length && cnt < 3; ++cnt) {
         sscanf(buf + i, "%s%n", str, &skip_n);
         i += skip_n;
+        if (i >= length) return -1;
         if (1 == cnt) {
             char *p = strchr(str, '?');
             if (p) {
@@ -122,12 +127,13 @@ void http_analysis(const char *buf, size_t length, const char *query, char *rst)
         }
     }
     i += 2; // Skip "\r\n"
+    if (i >= length) return -1;
     /*
      * Handle header lines
      * */
     char key[1024];
     int maohao = 0;
-    while (buf[i] != '\r') {
+    while (i < length && buf[i] != '\r') {
         j = 0;
         maohao = 0;
         while (buf[i] != '\r') {
@@ -136,12 +142,14 @@ void http_analysis(const char *buf, size_t length, const char *query, char *rst)
                 strcpy(key, str);
                 j = 0;
                 i += 2; // Skip ": "
+                if (i >= length) return -1;
             } else {
                 str[j++] = buf[i++];
             }
         }
         str[j] = '\0';
         i += 2;     // Skip "\r\n"
+        if (i >= length) return -1;
         node_insert(root, key, str);
     }
     node_find(root, "Method", rst);
@@ -156,15 +164,14 @@ void http_analysis(const char *buf, size_t length, const char *query, char *rst)
     link_destory(root);
     free(str);
 
-    return;
+    return 0;
 }
-
 
 /*
 int main()
 {
     const char buf[] = 
-        "POST /userloginex.php?action=login&cid=0&notice=0 HTTP/1.1\r\n"
+        "POST /../../../etc/passwd HTTP/1.1\r\n"
         "Host: acm.hdu.edu.cn\r\n"
         "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:39.0) Gecko/20100101 Firefox/39.0\r\n"
         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,;q=0.8\r\n"
@@ -177,10 +184,11 @@ int main()
         "Content-Length: 45\r\n\r\n"
         "username=changmu&userpass=chang&login=Sign+In";
 
-    char rst[1024], buff[100];
+    char rst[1024] = "", buff[100];
     while (~scanf("%s", buff)) {
-        http_analysis(buf, strlen(buf), buff, rst);
+        http_analysis(buf, 0, buff, rst);
         puts(rst);
     }
     return 0;
-}*/
+}
+*/
