@@ -1,104 +1,103 @@
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include "config.h"
 
-
-#define OPEN_FLAGS	"r"
-#define LINE_MAX	1024
-
-/*
- * return the number of port on success, or -1 on error.
- */
-static int config_get_port(config_t *conf)
-{
-	int port;
-	char *ep;
-	struct conflink *next = conf->list;
-
-	while (NULL != next) {
-		if ((strcmp(next->cl_key, "port")) == 0) {
-			port = strtol(next->cl_val, &ep, 10);
-			if (ep && *ep)
-				return -1;
-			return port;
-		}
-		next = next->cl_next;
-	}
-	return -1;
+static bool config_getString(config_t *config, const char *section, const char *name, char *value) {
+    ini_section sec = *(config -> section);
+    while (sec.next != NULL) {
+        sec = *(sec.next);
+        if (strcmp(section, sec.secname) == 0) {
+            int i;
+            for (i = 0; i < sec.keynum; ++i) {
+                if (strcmp(name, sec.key[i].name) == 0) {
+                    strcpy(value, sec.key[i].value);
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
-static void config_stripnl(char *src)
-{
-	int len = strlen(src);
-	if (src[len - 1] == '\n')
-		src[len - 1] = 0;
+static bool config_getInt(config_t *config, const char *section, const char *name, int *value) {
+    char str_value[VALUE_MAX];
+    if (config_getString(config, section, name, str_value)) {
+        *value = atoi(str_value);
+        return true;
+    }
+    return false;
 }
 
-static int config_read(config_t *conf)
-{
-	char line[LINE_MAX], *p;
-	struct conflink **next = &conf->list;
+static int config_read(FILE *fp, config_t *config) {
+    printf("loading config.ini...\n");
+    char line[LINE_MAX];
+    ini_section **section, *head;
+    section = &(config->section);
+    *section = malloc(sizeof(ini_section));
+    head = *section;
+    char *begin, *end;
+    while (fgets(line, LINE_MAX - 1, fp) != NULL) {
+        // remove '\n'
+        char *newline = strchr(line, '\n');
+        if (newline != NULL) {
+            *newline = '\0';
+        }
 
-	while (NULL != fgets(line, LINE_MAX - 1, conf->fp)) {
-		if (NULL != (p = strchr(line, '='))) {
-			*p++ = 0;
-			
-			*next = malloc(sizeof(**next));
-			if (NULL == *next)
-				return -1;
-			
-			strcpy((*next)->cl_key, line);
-			config_stripnl(p);	/* strip '\n' */
-			strcpy((*next)->cl_val, p);
-			
-			(*next)->cl_next = NULL;
-			next = &(*next)->cl_next;
-		}
-	}
-	return 0;
+        begin = strchr(line, '[');
+        if (begin != NULL) {
+            // this is section line
+            (*section) -> next = malloc(sizeof(ini_section));
+            *section = (*section) -> next;
+            (*section) -> keynum = 0;
+            end = strchr(line, ']');
+            *end = '\0';
+            strcpy((*section) -> secname, begin + 1);
+        } else {
+            // this is key line
+            begin = strchr(line, '=');
+            *begin = '\0';
+
+            int i = (*section) -> keynum;
+            strcpy((*section) -> key[i].name, line);
+            strcpy((*section) -> key[i].value, begin + 1);
+            ++((*section) -> keynum);
+        }
+    }
+    (*section) -> next = NULL;
+    config->section = head;
+    printf("config.ini loaded...\n");
+    return 0;
 }
 
-static void config_delete(config_t *conf)
-{
-	struct conflink *next, *t;
-
-	if (NULL != conf) {
-		next = conf->list;
-
-		/* free the key=val pairs list */
-		while (NULL != next) {
-			t = next;
-			next = next->cl_next;
-			free(t);
-		}
-
-		free(conf);
-	}
+void config_free(config_t *config) {
+    if (config->section != NULL) {
+        free(config->section);
+    }
+    if (config != NULL) {
+        free(config);
+    }
 }
 
-/*
- * return a pointer to config_t, which is allocated by malloc().
- */
-config_t *config_new(const char *path)
-{
-	config_t *conf;
+config_t *config_new(const char* filename) {
+    config_t *config = malloc(sizeof(config_t));
+    if (config == NULL) {
+        perror("config: malloc ");
+        return NULL;
+    }
 
-	conf = malloc(sizeof(*conf));
-	if (NULL != conf) {
-		memset(conf, 0, sizeof(*conf));
-		/* config's APIs initial... */
-		conf->get_port = config_get_port;
-		conf->delete = config_delete;
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+        perror("config: opening file ");
+        return NULL;
+    }
 
-		conf->fp = fopen(path, OPEN_FLAGS);
-		if (NULL != conf->fp) {
-			/* read configure file, and establish the linked list */
-			if (-1 == config_read(conf))
-				return NULL;
+    if (config_read(fp, config) == -1) {
+        return NULL;
+    }
 
-			return conf;
-		}
-	}
+    /* method initialize */
+    config->getString = config_getString;
+    config->getInt = config_getInt;
 
-	return NULL;
+    return config;
 }
