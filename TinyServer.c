@@ -30,7 +30,7 @@ void saferfree(void **pp) {
 int processSocket(int create_socket, struct sockaddr *addr, socklen_t *addr_len, char *request_buf) {
     int new_socket = accept(create_socket, addr, addr_len);
     if (new_socket < 0) {
-        perror("Server: accept ");
+        perror("Server: accept");
         return 1;
     } else {
         printf("The Client is connected...\n");
@@ -40,7 +40,7 @@ int processSocket(int create_socket, struct sockaddr *addr, socklen_t *addr_len,
     /* recv() is identical to recvfrom() with a null pointer passed as its address argument.
     As it is redundant, it may not be sup-ported supported in future releases. */
     if (recvfrom(new_socket, request_buf, BUFSIZE, 0, NULL, NULL) < 0) {
-        perror("server: receive");
+        perror("Server: receive");
     }
 
     write(new_socket, response, sizeof(response) - 1); /* the end of response is '\0'; */
@@ -81,12 +81,12 @@ int main(int argc, char const *argv[]) {
         printf("The socket was created : %d\n", create_socket);
     }
     if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
-        perror("Setsockopt error: ");
+        perror("Setsockopt error");
     }
     if (bind(create_socket, (struct sockaddr *) &addr, sizeof(addr)) == 0) {
         printf("Binding Socket...\n");
     } else {
-        perror("Failed to bind: ");
+        perror("Failed to bind");
     }
     if (listen(create_socket, backlog) < 0) {
         perror("Server: listen");

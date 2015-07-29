@@ -31,12 +31,15 @@ static bool config_getInt(config_t *config, const char *section, const char *nam
 static int config_read(FILE *fp, config_t *config) {
     printf("loading config.ini...\n");
     char line[LINE_MAX];
-    ini_section **section, *head;
-    section = &(config->section);
-    *section = malloc(sizeof(ini_section));
-    head = *section;
+    ini_section *section;
+    section = malloc(sizeof(ini_section));
+    config->section = section;
     char *begin, *end;
     while (fgets(line, LINE_MAX - 1, fp) != NULL) {
+        /* ignore the comment */
+        if (line[0] == ';') {
+            continue;
+        }
         // remove '\n'
         char *newline = strchr(line, '\n');
         if (newline != NULL) {
@@ -46,30 +49,25 @@ static int config_read(FILE *fp, config_t *config) {
         begin = strchr(line, '[');
         if (begin != NULL) {
             // this is section line
-            (*section) -> next = malloc(sizeof(ini_section));
-            *section = (*section) -> next;
-            (*section) -> keynum = 0;
+            section->next = malloc(sizeof(ini_section));
+            section = section->next;
+            section->keynum = 0;
             end = strchr(line, ']');
             *end = '\0';
-            strcpy((*section) -> secname, begin + 1);
+            strcpy(section->secname, begin + 1);
         } else {
             // this is key line
             begin = strchr(line, '=');
             *begin = '\0';
-
-            int i = (*section) -> keynum;
-            strcpy((*section) -> key[i].name, line);
-            strcpy((*section) -> key[i].value, begin + 1);
-            ++((*section) -> keynum);
+            int i = section->keynum;
+            strcpy(section->key[i].name, line);
+            strcpy(section->key[i].value, begin + 1);
+            ++(section->keynum);
         }
     }
-    (*section) -> next = NULL;
-    config->section = head;
+    section->next = NULL;
+    free(section);
     printf("config.ini loaded...\n");
-    free(*section);
-    free(head);
-    *section = NULL;
-    head = NULL;
     return 0;
 }
 
@@ -85,13 +83,13 @@ void config_free(config_t *config) {
 config_t *config_new(const char* filename) {
     config_t *config = malloc(sizeof(config_t));
     if (config == NULL) {
-        perror("config: malloc ");
+        perror("config: malloc");
         return NULL;
     }
 
     FILE *fp = fopen(filename, "r");
     if (fp == NULL) {
-        perror("config: opening file ");
+        perror("config: opening file");
         return NULL;
     }
 
