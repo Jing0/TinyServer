@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include "config.h"
+#include "request.h"
 
 #define BUFSIZE 1024
 /* BACKLOG defines the maximum length for the queue of pending connections */
