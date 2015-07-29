@@ -66,6 +66,10 @@ static int config_read(FILE *fp, config_t *config) {
     (*section) -> next = NULL;
     config->section = head;
     printf("config.ini loaded...\n");
+    free(*section);
+    free(head);
+    *section = NULL;
+    head = NULL;
     return 0;
 }
 
