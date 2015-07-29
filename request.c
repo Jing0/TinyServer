@@ -2,28 +2,41 @@
 #include <string.h>
 #include "request.h"
 
-//#define NOW_PATH 
+#define NOW_PATH "./HTTPDOC"
 
 void server_file(int client, char *path);
 void bad_notfound(int client);
 void headers(int client);
+void http_analysis(const char *buf, size_t length, const char *query, char *rst);
 
 
-void request(int client)
+void request(int client, const char *buf)
 {
 	char method[255];
 	char path[255];
 	char query_string[510];
 	char url[255];
 
-	strcpy(method,getMes("method"));
-	strcpy(url,getMes("url"));
+	memset(method, 0, sizeof(method));
+	memset(path, 0, sizeof(path));
+	memset(query_string, 0, sizeof(query_string));
+	memset(url, 0, sizeof(url));
+
+	//http_analysis(buf, strlen(buf), "Method", method);
+	//http_analysis(buf, strlen(buf), "Url", url);
+	//printf("%s\n", buf);
+	
 	if(!strcasecmp(method, "GET"))
 	{
 		//GET
+		if(url[strlen(url) - 1] == '/')
+			strcat(url,"index.html");
 		printf("%s\n", url);
-		sprintf(path, "%s", url);
-		headers(client);
+		
+		strcpy(path, NOW_PATH);
+		strcpy(path, url);
+		printf("Path: %s\n", path);
+		
 		server_file(client, path);
 	}
 	else if(!strcasecmp(method, "POST"))
@@ -46,12 +59,13 @@ void server_file(int client, char *path)
 		bad_notfound(client);
 	else
 	{
+		headers(client);
 		char buf[1024];
 		
 		while(!feof(fp))
 		{
 			fgets(buf, sizeof(buf), fp);
-			printf("%s\n", buf);
+			printf("%s", buf);
 			send(client, buf, strlen(buf), 0);
 		}
 		close(fp);
@@ -68,11 +82,11 @@ void bad_notfound(int client)
 	send(client, buf, strlen(buf), 0);
 	strcpy(buf, "Server: MyServer/0.1.0\r\n");
 	send(client, buf, strlen(buf), 0);
-	sprintf(buf, "Content-Type: text/text\r\n");
+	sprintf(buf, "Content-Type: text/html\r\n");
 	send(client, buf, strlen(buf), 0);
 	strcpy(buf, "\r\n");
 	send(client, buf, strlen(buf), 0);
-	server_file(client, "./404NotFound.html");
+	server_file(client, "./HTTPDOC/404NotFound.html");
 }
 
 void headers(int client)
@@ -84,7 +98,7 @@ void headers(int client)
 	send(client, buf, strlen(buf), 0);
 	strcpy(buf, "Server: MyServer/0.1.0\r\n");
 	send(client, buf, strlen(buf), 0);
-	sprintf(buf, "Content-Type: text/text\r\n");
+	sprintf(buf, "Content-Type: text/html\r\n");
 	send(client, buf, strlen(buf), 0);
 	strcpy(buf, "\r\n");
 	send(client, buf, strlen(buf), 0);

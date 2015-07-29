@@ -43,9 +43,13 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
         perror("server: receive");
     }
     *request_buffer = buff;
+    
+    //show message
+    request(new_socket, *request_buffer);
+    
     saferfree((void **) &buff);
 
-    write(new_socket, response, sizeof(response) - 1);
+    //write(new_socket, response, sizeof(response) - 1);
     close(new_socket);
     return 0;
 }
@@ -94,7 +98,9 @@ int main() {
 
     while (1) {
         processSocket(create_socket, (struct sockaddr *)&address, &address_len, &request_buffer);
-        printf("%s\n", request_buffer);
+        
+        //printf("%s\n", request_buffer);
+        
         int len = strlen(request_buffer);
         printf("%d\n", len);
     }
