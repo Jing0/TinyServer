@@ -20,14 +20,18 @@ void request(int client, const char *buf)
 	char query_string[510];
 	char url[255];
 
+
 	memset(method, 0, sizeof(method));
 	memset(path, 0, sizeof(path));
 	memset(query_string, 0, sizeof(query_string));
 	memset(url, 0, sizeof(url));
 
 	//get http method and some message
+	printf("Into http_analysis!!\n");
 	http_analysis(buf, strlen(buf), "Method", method);
 	http_analysis(buf, strlen(buf), "Url", url);
+
+	printf("Out  http_analysis\n");
 	//printf("%s\n", buf);
 	//printf("Url: %s\n", url);
 
