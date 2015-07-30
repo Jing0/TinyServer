@@ -105,6 +105,7 @@ int main() {
         //printf("%s\n", request_buffer);
         
         int len = strlen(request_buffer);
+        printf("%s\n", request_buffer);
         printf("%d\n", len);
         fflush(stdout);
     }
