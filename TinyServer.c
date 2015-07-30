@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -9,7 +10,7 @@
 #include "config.h"
 #include "request.h"
 
-#define BUFSIZE 1024
+#define BUFSIZE 8192
 /* BACKLOG defines the maximum length for the queue of pending connections */
 #define BACKLOG 10
 #define DEFAULT_PORT 8080
@@ -33,7 +34,7 @@ int processSocket(int create_socket, struct sockaddr *address, socklen_t *addres
         perror("server: accept");
         return 1;
     } else if (new_socket > 0) {
-        printf("The Client is connected...\n");
+        printf("The Client is connected: %s\n", inet_ntoa(((struct sockaddr_in *)address)->sin_addr));
         fflush(stdout);
     }
 

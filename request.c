@@ -25,10 +25,11 @@ void request(int client, const char *buf)
 	memset(query_string, 0, sizeof(query_string));
 	memset(url, 0, sizeof(url));
 
-	
+	//get http method and some message
 	http_analysis(buf, strlen(buf), "Method", method);
 	http_analysis(buf, strlen(buf), "Url", url);
 	//printf("%s\n", buf);
+	//printf("Url: %s\n", url);
 
 	if(url[strlen(url) - 1] == '/')
 		strcat(url,"index.html");
@@ -37,6 +38,7 @@ void request(int client, const char *buf)
 
 	strcpy(path, NOW_PATH);
 	strcat(path, url);
+	//printf("Url: %s\n", url);
 	printf("Path: %s\n", path);
 	//printf("Method: %s\n", method);
 	fflush(stdout);
@@ -61,14 +63,14 @@ void request(int client, const char *buf)
 void server_file(int client, char *path)
 {
 	FILE *fp = NULL;
-	fp = fopen(path, "r");
+	fp = fopen(path, "rb");
 	if(fp == NULL)
 	{
 		bad_notfound(client);
 	}
 	else
 	{
-		headers(client);
+		//headers(client);
 		char buf[1024];
 		
 		while(!feof(fp))

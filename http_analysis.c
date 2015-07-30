@@ -127,7 +127,7 @@ void http_analysis(const char *buf, size_t length, const char *query, char *rst)
      * */
     char key[1024];
     int maohao = 0;
-    while (buf[i] != '\r') {
+    while (i < length && buf[i] != '\r') {
         j = 0;
         maohao = 0;
         while (buf[i] != '\r') {
