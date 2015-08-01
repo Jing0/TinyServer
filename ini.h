@@ -1,5 +1,5 @@
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#ifndef _INI_H_
+#define _INI_H_
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -22,13 +22,13 @@ typedef struct ini_section {
     struct ini_section *next;   /* next section */
 } ini_section;
 
-typedef struct config_t {
+typedef struct ini_t {
     ini_section *section;
-} config_t;
+} ini_t;
 
-config_t *config_new(const char *);
-void config_free(config_t *);
-bool config_getString(config_t *config, const char *section, const char *name, char *value);
-bool config_getInt(config_t *config, const char *section, const char *name, int *value);
+ini_t *ini_new(const char *);
+void ini_free(ini_t *);
+bool ini_getString(ini_t *config, const char *section, const char *name, char *value);
+bool ini_getInt(ini_t *config, const char *section, const char *name, int *value);
 
 #endif

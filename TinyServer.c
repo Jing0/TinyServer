@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include "config.h"
+#include "ini.h"
 
 #define strEqual(str1, str2) (strcmp((str1), (str2)) == 0)
 #define lastChar(str) str[strlen(str)-1]
@@ -181,18 +181,18 @@ int processSocket(
 }
 
 int initialize() {
-    config_t *config = config_new(CONFIG_PATH);
+    ini_t *config = ini_new(CONFIG_PATH);
     if (config == NULL) {
         fprintf(stderr, "%s\n",
                 "Failed to read initialization file.\n"
                 "Default configuration will be used");
         return -1;
     }
-    config_getInt(config, "DATA", "port", &gConfig.port);
-    config_getInt(config, "DATA", "backlog", &gConfig.backlog);
-    config_getString(config, "PATH", "index", gConfig.indexPage);
-    config_getString(config, "PATH", "errPath", gConfig.errPath);
-    config_free(config);
+    ini_getInt(config, "DATA", "port", &gConfig.port);
+    ini_getInt(config, "DATA", "backlog", &gConfig.backlog);
+    ini_getString(config, "PATH", "index", gConfig.indexPage);
+    ini_getString(config, "PATH", "errPath", gConfig.errPath);
+    ini_free(config);
     return 0;
 }
 
