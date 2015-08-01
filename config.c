@@ -1,8 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
-#include "ini.h"
+#include "config.h"
 
-bool ini_getString(ini_t *config, const char *section, const char *name, char *value) {
+bool config_getString(config_t *config, const char *section, const char *name, char *value) {
     ini_section sec = *(config -> section);
     while (sec.next != NULL) {
         sec = *(sec.next);
@@ -19,16 +19,16 @@ bool ini_getString(ini_t *config, const char *section, const char *name, char *v
     return false;
 }
 
-bool ini_getInt(ini_t *config, const char *section, const char *name, int *value) {
+bool config_getInt(config_t *config, const char *section, const char *name, int *value) {
     char str_value[VALUE_MAX];
-    if (ini_getString(config, section, name, str_value)) {
+    if (config_getString(config, section, name, str_value)) {
         *value = atoi(str_value);
         return true;
     }
     return false;
 }
 
-static int ini_read(FILE *fp, ini_t *config) {
+static int config_read(FILE *fp, config_t *config) {
     printf("loading config.ini...\n");
     char line[LINE_MAX];
     ini_section *section;
@@ -71,7 +71,7 @@ static int ini_read(FILE *fp, ini_t *config) {
     return 0;
 }
 
-void ini_free(ini_t *config) {
+void config_free(config_t *config) {
     if (config->section != NULL) {
         free(config->section);
     }
@@ -80,8 +80,8 @@ void ini_free(ini_t *config) {
     }
 }
 
-ini_t *ini_new(const char* filename) {
-    ini_t *config = malloc(sizeof(ini_t));
+config_t *config_new(const char* filename) {
+    config_t *config = malloc(sizeof(config_t));
     if (config == NULL) {
         perror("config: malloc");
         return NULL;
@@ -93,7 +93,7 @@ ini_t *ini_new(const char* filename) {
         return NULL;
     }
 
-    if (ini_read(fp, config) == -1) {
+    if (config_read(fp, config) == -1) {
         return NULL;
     }
 

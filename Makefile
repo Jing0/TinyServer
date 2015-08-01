@@ -1,5 +1,5 @@
 PROGS	= TinyServer
-OBJS	= ini.o
+OBJS	= config.o
 FLAGS	= -Wall -std=c99
 CC	= gcc
 
