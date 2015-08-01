@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "config.h"
 
-static bool config_getString(config_t *config, const char *section, const char *name, char *value) {
+bool config_getString(config_t *config, const char *section, const char *name, char *value) {
     ini_section sec = *(config -> section);
     while (sec.next != NULL) {
         sec = *(sec.next);
@@ -19,7 +19,7 @@ static bool config_getString(config_t *config, const char *section, const char *
     return false;
 }
 
-static bool config_getInt(config_t *config, const char *section, const char *name, int *value) {
+bool config_getInt(config_t *config, const char *section, const char *name, int *value) {
     char str_value[VALUE_MAX];
     if (config_getString(config, section, name, str_value)) {
         *value = atoi(str_value);
@@ -96,10 +96,6 @@ config_t *config_new(const char* filename) {
     if (config_read(fp, config) == -1) {
         return NULL;
     }
-
-    /* method initialize */
-    config->getString = config_getString;
-    config->getInt = config_getInt;
 
     return config;
 }
